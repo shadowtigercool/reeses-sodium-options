@@ -7,7 +7,6 @@ import me.jellysquid.mods.sodium.client.gui.options.Option;
 import me.jellysquid.mods.sodium.client.gui.options.OptionPage;
 import me.jellysquid.mods.sodium.client.gui.widgets.AbstractWidget;
 import me.jellysquid.mods.sodium.client.util.Dim2i;
-import net.minecraft.SharedConstants;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
@@ -19,6 +18,7 @@ import net.minecraft.client.render.RenderLayer;
 import net.minecraft.text.OrderedText;
 import net.minecraft.text.Style;
 import net.minecraft.text.Text;
+import net.minecraft.util.StringHelper;
 import net.minecraft.util.Util;
 import net.minecraft.util.math.MathHelper;
 import org.jetbrains.annotations.Nullable;
@@ -181,7 +181,7 @@ public class SearchTextFieldComponent extends AbstractWidget {
         int i = Math.min(this.selectionStart, this.selectionEnd);
         int j = Math.max(this.selectionStart, this.selectionEnd);
         int k = this.maxLength - this.text.length() - (i - j);
-        String string = SharedConstants.stripInvalidChars(text);
+        String string = StringHelper.stripInvalidChars(text);
         int l = string.length();
         if (k < l) {
             string = string.substring(0, k);
@@ -361,7 +361,7 @@ public class SearchTextFieldComponent extends AbstractWidget {
         if (!this.isActive()) {
             return false;
         }
-        if (SharedConstants.isValidChar(chr)) {
+        if (StringHelper.isValidChar(chr)) {
             if (this.editable) {
                 this.lastSearch.set(this.text.trim());
                 this.write(Character.toString(chr));

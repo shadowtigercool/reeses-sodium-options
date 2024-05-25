@@ -1,5 +1,4 @@
 plugins {
-    id 'org.ajoberstar.grgit' version '5.2.1'
     id 'fabric-loom' version '1.6-SNAPSHOT'
     id 'maven-publish'
     id 'signing'
@@ -9,7 +8,7 @@ sourceCompatibility = JavaVersion.VERSION_21
 targetCompatibility = JavaVersion.VERSION_21
 
 archivesBaseName = project.archives_base_name
-version = "${project.mod_version}${getVersionType(project.version_type, project.revision)}+mc${project.minecraft_version}-${getVersionMetadata()}"
+version = createVersionString()
 group = project.maven_group
 
 repositories {
@@ -94,35 +93,28 @@ publishing {
     }
 }
 
-def getVersionMetadata() {
-    def build_id = System.getenv("GITHUB_RUN_NUMBER")
+def createVersionString() {
+    def builder = new StringBuilder()
 
-    // CI builds only
-    if (build_id != null) {
-        return "build.${build_id}"
+    def isReleaseBuild = project.hasProperty("build.release")
+    def buildId = System.getenv("GITHUB_RUN_NUMBER")
+
+    if (isReleaseBuild) {
+        builder.append(mod_version)
+    } else {
+        builder.append(mod_version.split('-')[0])
+        builder.append("-snapshot")
     }
 
-    if (grgit != null) {
-        def head = grgit.head()
-        def id = head.abbreviatedId
+    builder.append("+mc").append(minecraft_version)
 
-        // Flag the build if the build tree is not clean
-        if (!grgit.status().clean) {
-            id += "-dirty"
+    if (!isReleaseBuild) {
+        if (buildId != null) {
+            builder.append("-build.${buildId}")
+        } else {
+            builder.append("-local")
         }
-
-        return "rev.${id}"
     }
 
-    // No tracking information could be found about the build
-    return "unknown"
-}
-
-static def getVersionType(String version_type, String revision) {
-    version_type = version_type.trim().toLowerCase()
-    revision = revision.trim().toLowerCase()
-    if (version_type != "release") {
-        return "-${version_type}${revision}"
-    }
-    return ""
+    return builder.toString()
 }

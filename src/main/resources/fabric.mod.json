@@ -5,7 +5,12 @@
   "name": "Reese's Sodium Options",
   "description": "Replaces Sodium's Options Screen",
   "authors": [
-    "FlashyReese"
+    {
+      "name": "FlashyReese",
+      "contact": {
+        "homepage": "https://flashyreese.me"
+      }
+    }
   ],
   "contact": {
     "homepage": "https://github.com/FlashyReese/reeses-sodium-options",
@@ -25,7 +30,7 @@
       },
       "links": {
         "modmenu.curseforge": "https://curseforge.com/minecraft/mc-mods/reeses-sodium-options",
-        "modmenu.discord": "https://discord.gg/MPHVG6MH4e",
+        "modmenu.discord": "https://flashyreese.me/discord",
         "modmenu.donate": "https://ko-fi.com/flashyreese",
         "modmenu.github_releases": "https://github.com/FlashyReese/reeses-sodium-options/releases",
         "modmenu.kofi": "https://ko-fi.com/flashyreese",

@@ -2,7 +2,7 @@ package me.flashyreese.mods.reeses_sodium_options.client.gui.frame;
 
 import me.jellysquid.mods.sodium.client.gui.widgets.AbstractWidget;
 import me.jellysquid.mods.sodium.client.util.Dim2i;
-import net.minecraft.client.gui.DrawContext;
+import net.minecraft.client.gui.GuiGraphics;
 import org.apache.commons.lang3.Validate;
 
 import java.util.ArrayList;
@@ -26,7 +26,7 @@ public class BasicFrame extends AbstractFrame {
     @Override
     public void buildFrame() {
         this.children.clear();
-        this.drawable.clear();
+        this.renderable.clear();
         this.controlElements.clear();
 
         this.functions.forEach(function -> this.children.add(function.apply(dim)));
@@ -35,8 +35,8 @@ public class BasicFrame extends AbstractFrame {
     }
 
     @Override
-    public void render(DrawContext drawContext, int mouseX, int mouseY, float delta) {
-        super.render(drawContext, mouseX, mouseY, delta);
+    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float delta) {
+        super.render(guiGraphics, mouseX, mouseY, delta);
     }
 
     public static class Builder {

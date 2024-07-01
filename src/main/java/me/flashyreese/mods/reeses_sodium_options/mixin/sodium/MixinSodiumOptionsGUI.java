@@ -3,8 +3,8 @@ package me.flashyreese.mods.reeses_sodium_options.mixin.sodium;
 import me.flashyreese.mods.reeses_sodium_options.client.gui.SodiumVideoOptionsScreen;
 import me.jellysquid.mods.sodium.client.gui.SodiumOptionsGUI;
 import me.jellysquid.mods.sodium.client.gui.options.OptionPage;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.text.Text;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.network.chat.Component;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -25,12 +25,12 @@ public abstract class MixinSodiumOptionsGUI extends Screen {
     @Final
     private Screen prevScreen;
 
-    protected MixinSodiumOptionsGUI(Text title) {
+    protected MixinSodiumOptionsGUI(Component title) {
         super(title);
     }
 
     @Inject(method = "init", at = @At("TAIL"))
     public void postInit(CallbackInfo ci) {
-        this.client.setScreen(new SodiumVideoOptionsScreen(this.prevScreen, this.pages));
+        this.minecraft.setScreen(new SodiumVideoOptionsScreen(this.prevScreen, this.pages));
     }
 }

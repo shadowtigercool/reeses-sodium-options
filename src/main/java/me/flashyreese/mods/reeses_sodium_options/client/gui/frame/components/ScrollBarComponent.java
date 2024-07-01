@@ -2,10 +2,10 @@ package me.flashyreese.mods.reeses_sodium_options.client.gui.frame.components;
 
 import me.jellysquid.mods.sodium.client.gui.widgets.AbstractWidget;
 import me.jellysquid.mods.sodium.client.util.Dim2i;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.ScreenRect;
-import net.minecraft.client.util.InputUtil;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.navigation.ScreenRectangle;
+import net.minecraft.util.Mth;
+import org.lwjgl.glfw.GLFW;
 
 import java.util.function.Consumer;
 
@@ -50,12 +50,12 @@ public class ScrollBarComponent extends AbstractWidget {
     }
 
     @Override
-    public void render(DrawContext drawContext, int mouseX, int mouseY, float delta) {
-        this.drawBorder(drawContext, this.dim.x(), this.dim.y(), this.dim.getLimitX(), this.dim.getLimitY(), 0xFFAAAAAA);
+    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float delta) {
+        this.drawBorder(guiGraphics, this.dim.x(), this.dim.y(), this.dim.getLimitX(), this.dim.getLimitY(), 0xFFAAAAAA);
         //this.drawRectOutline(this.dim.x(), this.dim.y(), this.dim.getLimitX(), this.dim.getLimitY(), 0xFFAAAAAA);
-        this.drawRect(drawContext, this.scrollThumb.x(), this.scrollThumb.y(), this.scrollThumb.getLimitX(), this.scrollThumb.getLimitY(), 0xFFAAAAAA);
+        this.drawRect(guiGraphics, this.scrollThumb.x(), this.scrollThumb.y(), this.scrollThumb.getLimitX(), this.scrollThumb.getLimitY(), 0xFFAAAAAA);
         if (this.isFocused()) {
-            this.drawBorder(drawContext, this.dim.x(), this.dim.y(), this.dim.getLimitX(), this.dim.getLimitY(), -1);
+            this.drawBorder(guiGraphics, this.dim.x(), this.dim.y(), this.dim.getLimitX(), this.dim.getLimitY(), -1);
         }
     }
 
@@ -125,14 +125,14 @@ public class ScrollBarComponent extends AbstractWidget {
     }
 
     public void setOffset(int value) {
-        this.offset = MathHelper.clamp(value, 0, this.maxScrollBarOffset);
+        this.offset = Mth.clamp(value, 0, this.maxScrollBarOffset);
         this.updateThumbPosition();
         this.onSetOffset.accept(this.offset);
     }
 
     @Override
-    public ScreenRect getNavigationFocus() {
-        return new ScreenRect(this.dim.x(), this.dim.y(), this.dim.width(), this.dim.height());
+    public ScreenRectangle getRectangle() {
+        return new ScreenRectangle(this.dim.x(), this.dim.y(), this.dim.width(), this.dim.height());
     }
 
     @Override
@@ -141,18 +141,18 @@ public class ScrollBarComponent extends AbstractWidget {
             return false;
 
         if (this.mode == Mode.VERTICAL) {
-            if (keyCode == InputUtil.GLFW_KEY_UP) {
+            if (keyCode == GLFW.GLFW_KEY_UP) {
                 this.setOffset(this.getOffset() - SCROLL_OFFSET);
                 return true;
-            } else if (keyCode == InputUtil.GLFW_KEY_DOWN) {
+            } else if (keyCode == GLFW.GLFW_KEY_DOWN) {
                 this.setOffset(this.getOffset() + SCROLL_OFFSET);
                 return true;
             }
         } else {
-            if (keyCode == InputUtil.GLFW_KEY_LEFT) {
+            if (keyCode == GLFW.GLFW_KEY_LEFT) {
                 this.setOffset(this.getOffset() - SCROLL_OFFSET);
                 return true;
-            } else if (keyCode == InputUtil.GLFW_KEY_RIGHT) {
+            } else if (keyCode == GLFW.GLFW_KEY_RIGHT) {
                 this.setOffset(this.getOffset() + SCROLL_OFFSET);
                 return true;
             }

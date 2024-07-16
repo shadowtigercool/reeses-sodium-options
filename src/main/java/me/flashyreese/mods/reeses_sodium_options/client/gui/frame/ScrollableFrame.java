@@ -4,9 +4,9 @@ import me.flashyreese.mods.reeses_sodium_options.client.gui.Dim2iExtended;
 import me.flashyreese.mods.reeses_sodium_options.client.gui.frame.components.ScrollBarComponent;
 import me.jellysquid.mods.sodium.client.gui.options.control.ControlElement;
 import me.jellysquid.mods.sodium.client.util.Dim2i;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.navigation.GuiNavigation;
-import net.minecraft.client.gui.navigation.GuiNavigationPath;
+import net.minecraft.client.gui.ComponentPath;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.navigation.FocusNavigationEvent;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.concurrent.atomic.AtomicReference;
@@ -90,7 +90,7 @@ public class ScrollableFrame extends AbstractFrame {
     @Override
     public void buildFrame() {
         this.children.clear();
-        this.drawable.clear();
+        this.renderable.clear();
         this.controlElements.clear();
 
         if (this.canScrollHorizontal) {
@@ -133,29 +133,29 @@ public class ScrollableFrame extends AbstractFrame {
     }
 
     @Override
-    public void render(DrawContext drawContext, int mouseX, int mouseY, float delta) {
+    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float delta) {
         if (this.canScrollHorizontal || this.canScrollVertical) {
             if (this.renderOutline) {
-                this.drawBorder(drawContext, this.dim.x(), this.dim.y(), this.dim.getLimitX(), this.dim.getLimitY(), 0xFFAAAAAA);
+                this.drawBorder(guiGraphics, this.dim.x(), this.dim.y(), this.dim.getLimitX(), this.dim.getLimitY(), 0xFFAAAAAA);
             }
-            this.applyScissor(this.viewPortDimension.x(), this.viewPortDimension.y(), this.viewPortDimension.width(), this.viewPortDimension.height(), () -> super.render(drawContext, mouseX, mouseY, delta));
+            this.applyScissor(this.viewPortDimension.x(), this.viewPortDimension.y(), this.viewPortDimension.width(), this.viewPortDimension.height(), () -> super.render(guiGraphics, mouseX, mouseY, delta));
         } else {
-            super.render(drawContext, mouseX, mouseY, delta);
+            super.render(guiGraphics, mouseX, mouseY, delta);
         }
 
         if (this.canScrollHorizontal) {
-            this.horizontalScrollBar.render(drawContext, mouseX, mouseY, delta);
+            this.horizontalScrollBar.render(guiGraphics, mouseX, mouseY, delta);
         }
 
         if (this.canScrollVertical) {
-            this.verticalScrollBar.render(drawContext, mouseX, mouseY, delta);
+            this.verticalScrollBar.render(guiGraphics, mouseX, mouseY, delta);
         }
     }
 
     @Override
-    public @Nullable GuiNavigationPath getNavigationPath(GuiNavigation navigation) {
+    public @Nullable ComponentPath nextFocusPath(FocusNavigationEvent navigation) {
         //this.snapFocusedInViewport();
-        return super.getNavigationPath(navigation);
+        return super.nextFocusPath(navigation);
     }
 
     @Override

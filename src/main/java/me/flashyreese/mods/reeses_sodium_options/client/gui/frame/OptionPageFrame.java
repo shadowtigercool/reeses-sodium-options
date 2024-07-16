@@ -10,14 +10,14 @@ import me.jellysquid.mods.sodium.client.gui.options.OptionPage;
 import me.jellysquid.mods.sodium.client.gui.options.control.Control;
 import me.jellysquid.mods.sodium.client.gui.options.control.ControlElement;
 import me.jellysquid.mods.sodium.client.util.Dim2i;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.navigation.GuiNavigation;
-import net.minecraft.client.gui.navigation.GuiNavigationPath;
-import net.minecraft.text.OrderedText;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
-import net.minecraft.util.Language;
+import net.minecraft.ChatFormatting;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.ComponentPath;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.navigation.FocusNavigationEvent;
+import net.minecraft.locale.Language;
+import net.minecraft.network.chat.Component;
+import net.minecraft.util.FormattedCharSequence;
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.Nullable;
 
@@ -44,7 +44,7 @@ public class OptionPageFrame extends AbstractFrame {
 
     public void setupFrame() {
         this.children.clear();
-        this.drawable.clear();
+        this.renderable.clear();
         this.controlElements.clear();
 
         int y = 0;
@@ -72,7 +72,7 @@ public class OptionPageFrame extends AbstractFrame {
         if (this.page == null) return;
 
         this.children.clear();
-        this.drawable.clear();
+        this.renderable.clear();
         this.controlElements.clear();
 
         int y = 0;
@@ -97,7 +97,7 @@ public class OptionPageFrame extends AbstractFrame {
     }
 
     @Override
-    public void render(DrawContext drawContext, int mouseX, int mouseY, float delta) {
+    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float delta) {
         ControlElement<?> hoveredElement = this.controlElements.stream()
                 .filter(controlElement -> ((Dim2iExtended) (Object) controlElement.getDimensions()).overlapWith(this.originalDim))
                 .filter(ControlElement::isHovered)
@@ -107,21 +107,21 @@ public class OptionPageFrame extends AbstractFrame {
                         .filter(ControlElement::isFocused)
                         .findFirst()
                         .orElse(null));
-        super.render(drawContext, mouseX, mouseY, delta);
+        super.render(guiGraphics, mouseX, mouseY, delta);
         if (hoveredElement != null && this.lastHoveredElement == hoveredElement &&
                 ((this.originalDim.containsCursor(mouseX, mouseY) && hoveredElement.isHovered() && hoveredElement.isMouseOver(mouseX, mouseY))
                         || hoveredElement.isFocused())) {
             if (this.lastTime == 0) {
                 this.lastTime = System.currentTimeMillis();
             }
-            this.renderOptionTooltip(drawContext, hoveredElement);
+            this.renderOptionTooltip(guiGraphics, hoveredElement);
         } else {
             this.lastTime = 0;
             this.lastHoveredElement = hoveredElement;
         }
     }
 
-    private void renderOptionTooltip(DrawContext drawContext, ControlElement<?> element) {
+    private void renderOptionTooltip(GuiGraphics guiGraphics, ControlElement<?> element) {
         if (this.lastTime + 500 > System.currentTimeMillis()) return;
 
         Dim2i dim = element.getDimensions();
@@ -136,12 +136,12 @@ public class OptionPageFrame extends AbstractFrame {
         int boxX = dim.x();
 
         Option<?> option = element.getOption();
-        List<OrderedText> tooltip = new ArrayList<>(MinecraftClient.getInstance().textRenderer.wrapLines(option.getTooltip(), boxWidth - (textPadding * 2)));
+        List<FormattedCharSequence> tooltip = new ArrayList<>(Minecraft.getInstance().font.split(option.getTooltip(), boxWidth - (textPadding * 2)));
 
         OptionImpact impact = option.getImpact();
 
         if (impact != null) {
-            tooltip.add(Language.getInstance().reorder(Text.translatable("sodium.options.performance_impact_string", impact.getLocalizedName()).formatted(Formatting.GRAY)));
+            tooltip.add(Language.getInstance().getVisualOrder(Component.translatable("sodium.options.performance_impact_string", impact.getLocalizedName()).withStyle(ChatFormatting.GRAY)));
         }
 
         int boxHeight = (tooltip.size() * 12) + boxPadding;
@@ -157,20 +157,20 @@ public class OptionPageFrame extends AbstractFrame {
             boxY = dim.getLimitY();
         }
 
-        drawContext.getMatrices().push();
-        drawContext.getMatrices().translate(0, 0, 90);
-        this.drawRect(drawContext, boxX, boxY, boxX + boxWidth, boxY + boxHeight, 0xE0000000);
-        this.drawBorder(drawContext, boxX, boxY, boxX + boxWidth, boxY + boxHeight, 0xFF94E4D3);
+        guiGraphics.pose().pushPose();
+        guiGraphics.pose().translate(0, 0, 90);
+        this.drawRect(guiGraphics, boxX, boxY, boxX + boxWidth, boxY + boxHeight, 0xE0000000);
+        this.drawBorder(guiGraphics, boxX, boxY, boxX + boxWidth, boxY + boxHeight, 0xFF94E4D3);
 
         for (int i = 0; i < tooltip.size(); i++) {
-            drawContext.drawText(MinecraftClient.getInstance().textRenderer, tooltip.get(i), boxX + textPadding, boxY + textPadding + (i * 12), 0xFFFFFFFF, true);
+            guiGraphics.drawString(Minecraft.getInstance().font, tooltip.get(i), boxX + textPadding, boxY + textPadding + (i * 12), 0xFFFFFFFF, true);
         }
-        drawContext.getMatrices().pop();
+        guiGraphics.pose().popPose();
     }
 
     @Override
-    public @Nullable GuiNavigationPath getNavigationPath(GuiNavigation navigation) {
-        return super.getNavigationPath(navigation);
+    public @Nullable ComponentPath nextFocusPath(FocusNavigationEvent navigation) {
+        return super.nextFocusPath(navigation);
     }
 
     public static class Builder {

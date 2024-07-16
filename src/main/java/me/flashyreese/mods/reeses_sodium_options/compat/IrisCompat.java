@@ -1,6 +1,6 @@
 package me.flashyreese.mods.reeses_sodium_options.compat;
 
-import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.gui.screens.Screen;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;

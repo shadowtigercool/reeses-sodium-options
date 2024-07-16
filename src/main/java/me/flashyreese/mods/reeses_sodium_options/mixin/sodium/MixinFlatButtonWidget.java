@@ -4,8 +4,8 @@ import me.flashyreese.mods.reeses_sodium_options.client.gui.FlatButtonWidgetExte
 import me.jellysquid.mods.sodium.client.gui.widgets.AbstractWidget;
 import me.jellysquid.mods.sodium.client.gui.widgets.FlatButtonWidget;
 import me.jellysquid.mods.sodium.client.util.Dim2i;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.text.Text;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.network.chat.Component;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -23,21 +23,21 @@ public abstract class MixinFlatButtonWidget extends AbstractWidget implements Fl
     @Unique
     private boolean leftAligned;
 
-    @Redirect(method = "render", at = @At(value = "INVOKE", target = "Lme/jellysquid/mods/sodium/client/gui/widgets/FlatButtonWidget;drawString(Lnet/minecraft/client/gui/DrawContext;Lnet/minecraft/text/Text;III)V"))
-    public void redirectDrawString(FlatButtonWidget instance, DrawContext drawContext, Text text, int x, int y, int color) {
+    @Redirect(method = "render", at = @At(value = "INVOKE", target = "Lme/jellysquid/mods/sodium/client/gui/widgets/FlatButtonWidget;drawString(Lnet/minecraft/client/gui/GuiGraphics;Lnet/minecraft/network/chat/Component;III)V"))
+    public void redirectDrawString(FlatButtonWidget instance, GuiGraphics guiGraphics, Component text, int x, int y, int color) {
         if (this.leftAligned) {
-            this.drawString(drawContext, text, this.dim.x() + 10, y, color);
+            this.drawString(guiGraphics, text, this.dim.x() + 10, y, color);
         } else {
-            this.drawString(drawContext, text, x, y, color);
+            this.drawString(guiGraphics, text, x, y, color);
         }
     }
 
-    @Redirect(method = "render", at = @At(value = "INVOKE", target = "Lme/jellysquid/mods/sodium/client/gui/widgets/FlatButtonWidget;drawRect(Lnet/minecraft/client/gui/DrawContext;IIIII)V", ordinal = 1))
-    public void redirectDrawRect(FlatButtonWidget instance, DrawContext drawContext, int x1, int y1, int x2, int y2, int color) {
+    @Redirect(method = "render", at = @At(value = "INVOKE", target = "Lme/jellysquid/mods/sodium/client/gui/widgets/FlatButtonWidget;drawRect(Lnet/minecraft/client/gui/GuiGraphics;IIIII)V", ordinal = 1))
+    public void redirectDrawRect(FlatButtonWidget instance, GuiGraphics guiGraphics, int x1, int y1, int x2, int y2, int color) {
         if (this.leftAligned) {
-            this.drawRect(drawContext, x1, this.dim.y(), x1 + 1, y2, color);
+            this.drawRect(guiGraphics, x1, this.dim.y(), x1 + 1, y2, color);
         } else {
-            this.drawRect(drawContext, x1, y1, x2, y2, color);
+            this.drawRect(guiGraphics, x1, y1, x2, y2, color);
         }
     }
 

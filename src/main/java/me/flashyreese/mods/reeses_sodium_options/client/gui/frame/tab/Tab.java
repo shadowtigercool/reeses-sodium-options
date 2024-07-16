@@ -5,18 +5,18 @@ import me.flashyreese.mods.reeses_sodium_options.client.gui.frame.OptionPageFram
 import me.flashyreese.mods.reeses_sodium_options.client.gui.frame.ScrollableFrame;
 import me.jellysquid.mods.sodium.client.gui.options.OptionPage;
 import me.jellysquid.mods.sodium.client.util.Dim2i;
-import net.minecraft.text.Text;
+import net.minecraft.network.chat.Component;
 
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 
-public record Tab<T extends AbstractFrame>(Text title, Function<Dim2i, T> frameFunction) {
+public record Tab<T extends AbstractFrame>(Component title, Function<Dim2i, T> frameFunction) {
 
     public static Tab.Builder<?> createBuilder() {
         return new Tab.Builder<>();
     }
 
-    public Text getTitle() {
+    public Component getTitle() {
         return title;
     }
 
@@ -25,10 +25,10 @@ public record Tab<T extends AbstractFrame>(Text title, Function<Dim2i, T> frameF
     }
 
     public static class Builder<T extends AbstractFrame> {
-        private Text title;
+        private Component title;
         private Function<Dim2i, T> frameFunction;
 
-        public Builder<T> setTitle(Text title) {
+        public Builder<T> setTitle(Component title) {
             this.title = title;
             return this;
         }

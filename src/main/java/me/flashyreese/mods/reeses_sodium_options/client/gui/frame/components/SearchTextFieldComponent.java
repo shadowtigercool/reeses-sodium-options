@@ -7,20 +7,20 @@ import me.jellysquid.mods.sodium.client.gui.options.Option;
 import me.jellysquid.mods.sodium.client.gui.options.OptionPage;
 import me.jellysquid.mods.sodium.client.gui.widgets.AbstractWidget;
 import me.jellysquid.mods.sodium.client.util.Dim2i;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.font.TextRenderer;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.ScreenRect;
-import net.minecraft.client.gui.navigation.GuiNavigation;
-import net.minecraft.client.gui.navigation.GuiNavigationPath;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.render.RenderLayer;
-import net.minecraft.text.OrderedText;
-import net.minecraft.text.Style;
-import net.minecraft.text.Text;
-import net.minecraft.util.StringHelper;
-import net.minecraft.util.Util;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.Util;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.ComponentPath;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.navigation.FocusNavigationEvent;
+import net.minecraft.client.gui.navigation.ScreenRectangle;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.Style;
+import net.minecraft.util.FormattedCharSequence;
+import net.minecraft.util.Mth;
+import net.minecraft.util.StringUtil;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 
@@ -33,10 +33,10 @@ import java.util.function.Predicate;
 public class SearchTextFieldComponent extends AbstractWidget {
     protected final Dim2i dim;
     protected final List<OptionPage> pages;
-    private final TextRenderer textRenderer = MinecraftClient.getInstance().textRenderer;
+    private final Font font = Minecraft.getInstance().font;
     private final Predicate<String> textPredicate = Objects::nonNull;
-    private final BiFunction<String, Integer, OrderedText> renderTextProvider = (string, firstCharacterIndex) -> OrderedText.styledForwardsVisitedString(string, Style.EMPTY);
-    private final AtomicReference<Text> tabFrameSelectedTab;
+    private final BiFunction<String, Integer, FormattedCharSequence> renderTextProvider = (string, firstCharacterIndex) -> FormattedCharSequence.forward(string, Style.EMPTY);
+    private final AtomicReference<Component> tabFrameSelectedTab;
     private final AtomicReference<Integer> tabFrameScrollBarOffset;
     private final AtomicReference<Integer> optionPageScrollBarOffset;
     private final int tabDimHeight;
@@ -53,7 +53,7 @@ public class SearchTextFieldComponent extends AbstractWidget {
     private int selectionEnd;
     private int lastCursorPosition = this.getCursor();
 
-    public SearchTextFieldComponent(Dim2i dim, List<OptionPage> pages, AtomicReference<Text> tabFrameSelectedTab, AtomicReference<Integer> tabFrameScrollBarOffset, AtomicReference<Integer> optionPageScrollBarOffset, int tabDimHeight, SodiumVideoOptionsScreen sodiumVideoOptionsScreen, AtomicReference<String> lastSearch, AtomicReference<Integer> lastSearchIndex) {
+    public SearchTextFieldComponent(Dim2i dim, List<OptionPage> pages, AtomicReference<Component> tabFrameSelectedTab, AtomicReference<Integer> tabFrameScrollBarOffset, AtomicReference<Integer> optionPageScrollBarOffset, int tabDimHeight, SodiumVideoOptionsScreen sodiumVideoOptionsScreen, AtomicReference<String> lastSearch, AtomicReference<Integer> lastSearchIndex) {
         this.dim = dim;
         this.pages = pages;
         this.tabFrameSelectedTab = tabFrameSelectedTab;
@@ -69,22 +69,22 @@ public class SearchTextFieldComponent extends AbstractWidget {
     }
 
     @Override
-    public void render(DrawContext context, int mouseX, int mouseY, float delta) {
+    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float delta) {
         if (!this.isVisible()) {
             return;
         }
         if (!this.isFocused() && this.text.isBlank()) {
             String key = "rso.search_bar_empty";
-            Text text = Text.translatable(key);
+            Component text = Component.translatable(key);
             if (text.getString().equals(key))
-                text = Text.literal("Search options...");
-            this.drawString(context, text, this.dim.x() + 6, this.dim.y() + 6, 0xFFAAAAAA);
+                text = Component.literal("Search options...");
+            this.drawString(guiGraphics, text, this.dim.x() + 6, this.dim.y() + 6, 0xFFAAAAAA);
         }
 
-        this.drawRect(context, this.dim.x(), this.dim.y(), this.dim.getLimitX(), this.dim.getLimitY(), this.isFocused() ? 0xE0000000 : 0x90000000);
+        this.drawRect(guiGraphics, this.dim.x(), this.dim.y(), this.dim.getLimitX(), this.dim.getLimitY(), this.isFocused() ? 0xE0000000 : 0x90000000);
         int j = this.selectionStart - this.firstCharacterIndex;
         int k = this.selectionEnd - this.firstCharacterIndex;
-        String string = this.textRenderer.trimToWidth(this.text.substring(this.firstCharacterIndex), this.getInnerWidth());
+        String string = this.font.plainSubstrByWidth(this.text.substring(this.firstCharacterIndex), this.getInnerWidth());
         boolean bl = j >= 0 && j <= string.length();
         int l = this.dim.x() + 6;
         int m = this.dim.y() + 6;
@@ -94,7 +94,7 @@ public class SearchTextFieldComponent extends AbstractWidget {
         }
         if (!string.isEmpty()) {
             String string2 = bl ? string.substring(0, j) : string;
-            n = context.drawTextWithShadow(this.textRenderer, this.renderTextProvider.apply(string2, this.firstCharacterIndex), n, m, 0xFFFFFFFF);
+            n = guiGraphics.drawString(this.font, this.renderTextProvider.apply(string2, this.firstCharacterIndex), n, m, 0xFFFFFFFF);
         }
         boolean bl3 = this.selectionStart < this.text.length() || this.text.length() >= this.getMaxLength();
         int o = n;
@@ -105,16 +105,16 @@ public class SearchTextFieldComponent extends AbstractWidget {
             --n;
         }
         if (!string.isEmpty() && bl && j < string.length()) {
-            context.drawTextWithShadow(this.textRenderer, this.renderTextProvider.apply(string.substring(j), this.selectionStart), n, m, 0xFFFFFFFF);
+            guiGraphics.drawString(this.font, this.renderTextProvider.apply(string.substring(j), this.selectionStart), n, m, 0xFFFFFFFF);
         }
         // Cursor
         if (this.isFocused()) {
-            context.fill(RenderLayer.getGuiOverlay(), o, m - 1, o + 1, m + 1 + this.textRenderer.fontHeight, -3092272);
+            guiGraphics.fill(RenderType.guiOverlay(), o, m - 1, o + 1, m + 1 + this.font.lineHeight, -3092272);
         }
         // Highlighted text
         if (k != j) {
-            int p = l + this.textRenderer.getWidth(string.substring(0, k));
-            this.drawSelectionHighlight(context, o, m - 1, p - 1, m + 1 + this.textRenderer.fontHeight);
+            int p = l + this.font.width(string.substring(0, k));
+            this.drawSelectionHighlight(guiGraphics, o, m - 1, p - 1, m + 1 + this.font.lineHeight);
         }
 
         /*this.drawRect(context, this.dim.x(), this.dim.y(), this.dim.getLimitX(), this.dim.getLimitY(), 0x90000000);
@@ -124,9 +124,9 @@ public class SearchTextFieldComponent extends AbstractWidget {
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        int i = MathHelper.floor(mouseX) - this.dim.x() - 6;
-        String string = this.textRenderer.trimToWidth(this.text.substring(this.firstCharacterIndex), this.getInnerWidth());
-        this.setCursor(this.textRenderer.trimToWidth(string, i).length() + this.firstCharacterIndex);
+        int i = Mth.floor(mouseX) - this.dim.x() - 6;
+        String string = this.font.plainSubstrByWidth(this.text.substring(this.firstCharacterIndex), this.getInnerWidth());
+        this.setCursor(this.font.plainSubstrByWidth(string, i).length() + this.firstCharacterIndex);
 
         this.setFocused(this.dim.containsCursor(mouseX, mouseY));
         this.pages.forEach(page -> page
@@ -144,7 +144,7 @@ public class SearchTextFieldComponent extends AbstractWidget {
         this.focused = focused;
     }
 
-    private void drawSelectionHighlight(DrawContext context, int x1, int y1, int x2, int y2) {
+    private void drawSelectionHighlight(GuiGraphics guiGraphics, int x1, int y1, int x2, int y2) {
         int i;
         if (x1 < x2) {
             i = x1;
@@ -162,7 +162,7 @@ public class SearchTextFieldComponent extends AbstractWidget {
         if (x1 > this.dim.x() + this.dim.width()) {
             x1 = this.dim.x() + this.dim.width();
         }
-        context.fill(RenderLayer.getGuiTextHighlight(), x1, y1, x2, y2, -16776961);
+        guiGraphics.fill(RenderType.guiTextHighlight(), x1, y1, x2, y2, -16776961);
     }
 
     private int getMaxLength() {
@@ -181,7 +181,7 @@ public class SearchTextFieldComponent extends AbstractWidget {
         int i = Math.min(this.selectionStart, this.selectionEnd);
         int j = Math.max(this.selectionStart, this.selectionEnd);
         int k = this.maxLength - this.text.length() - (i - j);
-        String string = StringHelper.stripInvalidChars(text);
+        String string = StringUtil.filterText(text);
         int l = string.length();
         if (k < l) {
             string = string.substring(0, k);
@@ -312,11 +312,11 @@ public class SearchTextFieldComponent extends AbstractWidget {
     }
 
     private int getCursorPosWithOffset(int offset) {
-        return Util.moveCursor(this.text, this.selectionStart, offset);
+        return Util.offsetByCodepoints(this.text, this.selectionStart, offset);
     }
 
     public void setSelectionStart(int cursor) {
-        this.selectionStart = MathHelper.clamp(cursor, 0, this.text.length());
+        this.selectionStart = Mth.clamp(cursor, 0, this.text.length());
     }
 
     public void setCursorToStart() {
@@ -329,17 +329,17 @@ public class SearchTextFieldComponent extends AbstractWidget {
 
     public void setSelectionEnd(int index) {
         int i = this.text.length();
-        this.selectionEnd = MathHelper.clamp(index, 0, i);
-        if (this.textRenderer != null) {
+        this.selectionEnd = Mth.clamp(index, 0, i);
+        if (this.font != null) {
             if (this.firstCharacterIndex > i) {
                 this.firstCharacterIndex = i;
             }
 
             int j = this.getInnerWidth();
-            String string = this.textRenderer.trimToWidth(this.text.substring(this.firstCharacterIndex), j);
+            String string = this.font.plainSubstrByWidth(this.text.substring(this.firstCharacterIndex), j);
             int k = string.length() + this.firstCharacterIndex;
             if (this.selectionEnd == this.firstCharacterIndex) {
-                this.firstCharacterIndex -= this.textRenderer.trimToWidth(this.text, j, true).length();
+                this.firstCharacterIndex -= this.font.plainSubstrByWidth(this.text, j, true).length();
             }
 
             if (this.selectionEnd > k) {
@@ -348,7 +348,7 @@ public class SearchTextFieldComponent extends AbstractWidget {
                 this.firstCharacterIndex -= this.firstCharacterIndex - this.selectionEnd;
             }
 
-            this.firstCharacterIndex = MathHelper.clamp(this.firstCharacterIndex, 0, i);
+            this.firstCharacterIndex = Mth.clamp(this.firstCharacterIndex, 0, i);
         }
     }
 
@@ -361,7 +361,7 @@ public class SearchTextFieldComponent extends AbstractWidget {
         if (!this.isActive()) {
             return false;
         }
-        if (StringHelper.isValidChar(chr)) {
+        if (StringUtil.isAllowedChatCharacter(chr)) {
             if (this.editable) {
                 this.lastSearch.set(this.text.trim());
                 this.write(Character.toString(chr));
@@ -389,16 +389,16 @@ public class SearchTextFieldComponent extends AbstractWidget {
                 this.setSelectionEnd(0);
                 return true;
             } else if (Screen.isCopy(keyCode)) {
-                MinecraftClient.getInstance().keyboard.setClipboard(this.getSelectedText());
+                Minecraft.getInstance().keyboardHandler.setClipboard(this.getSelectedText());
                 return true;
             } else if (Screen.isPaste(keyCode)) {
                 if (this.editable) {
-                    this.write(MinecraftClient.getInstance().keyboard.getClipboard());
+                    this.write(Minecraft.getInstance().keyboardHandler.getClipboard());
                 }
 
                 return true;
             } else if (Screen.isCut(keyCode)) {
-                MinecraftClient.getInstance().keyboard.setClipboard(this.getSelectedText());
+                Minecraft.getInstance().keyboardHandler.setClipboard(this.getSelectedText());
                 if (this.editable) {
                     this.write("");
                 }
@@ -508,14 +508,14 @@ public class SearchTextFieldComponent extends AbstractWidget {
     }
 
     @Override
-    public @Nullable GuiNavigationPath getNavigationPath(GuiNavigation navigation) {
+    public @Nullable ComponentPath nextFocusPath(FocusNavigationEvent navigation) {
         if (!this.visible)
             return null;
-        return super.getNavigationPath(navigation);
+        return super.nextFocusPath(navigation);
     }
 
     @Override
-    public ScreenRect getNavigationFocus() {
-        return new ScreenRect(this.dim.x(), this.dim.y(), this.dim.width(), this.dim.height());
+    public ScreenRectangle getRectangle() {
+        return new ScreenRectangle(this.dim.x(), this.dim.y(), this.dim.width(), this.dim.height());
     }
 }

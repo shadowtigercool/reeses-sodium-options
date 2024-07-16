@@ -5,11 +5,11 @@ import me.jellysquid.mods.sodium.client.gui.options.Option;
 import me.jellysquid.mods.sodium.client.gui.options.control.ControlElement;
 import me.jellysquid.mods.sodium.client.gui.options.control.ControlValueFormatter;
 import me.jellysquid.mods.sodium.client.util.Dim2i;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.util.InputUtil;
-import net.minecraft.client.util.math.Rect2i;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.renderer.Rect2i;
+import net.minecraft.util.Mth;
+import org.lwjgl.glfw.GLFW;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -76,35 +76,35 @@ public abstract class MixinSliderControlElement extends ControlElement<Integer> 
     }
 
     @Inject(method = "renderSlider", at = @At(value = "TAIL"))
-    public void rso$renderSlider(DrawContext drawContext, CallbackInfo ci) {
+    public void rso$renderSlider(GuiGraphics guiGraphics, CallbackInfo ci) {
         int sliderX = this.getSliderBounds().x();
         int sliderY = this.getSliderBounds().y();
         int sliderWidth = this.getSliderBounds().width();
         int sliderHeight = this.getSliderBounds().height();
         this.thumbPosition = this.getThumbPositionForValue(this.option.getValue());
-        double thumbOffset = MathHelper.clamp((double) (this.getIntValue() - this.min) / (double) this.range * (double) sliderWidth, 0.0, sliderWidth);
+        double thumbOffset = Mth.clamp((double) (this.getIntValue() - this.min) / (double) this.range * (double) sliderWidth, 0.0, sliderWidth);
         double thumbX = (double) sliderX + thumbOffset - 2.0;
         if (this.isFocused() && this.isEditMode()) {
-            this.drawRect(drawContext, (int) (thumbX - 1), sliderY - 1, (int) (thumbX + 5), sliderY + sliderHeight + 1, 0xFFFFFFFF);
+            this.drawRect(guiGraphics, (int) (thumbX - 1), sliderY - 1, (int) (thumbX + 5), sliderY + sliderHeight + 1, 0xFFFFFFFF);
         }
     }
 
-    @Redirect(method = "renderStandaloneValue", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/util/math/Rect2i;getX()I"))
+    @Redirect(method = "renderStandaloneValue", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/Rect2i;getX()I"))
     public int rso$renderStandaloneValueSliderBoundsGetX(Rect2i instance) {
         return this.getSliderBounds().x();
     }
 
-    @Redirect(method = "renderStandaloneValue", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/util/math/Rect2i;getY()I"))
+    @Redirect(method = "renderStandaloneValue", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/Rect2i;getY()I"))
     public int renderStandaloneValueSliderBoundsGetY(Rect2i instance) {
         return this.getSliderBounds().y();
     }
 
-    @Redirect(method = "renderSlider", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/util/math/Rect2i;getX()I"))
+    @Redirect(method = "renderSlider", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/Rect2i;getX()I"))
     public int rso$renderSliderSliderBoundsGetX(Rect2i instance) {
         return this.getSliderBounds().x();
     }
 
-    @Redirect(method = "renderSlider", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/util/math/Rect2i;getY()I"))
+    @Redirect(method = "renderSlider", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/Rect2i;getY()I"))
     public int rso$renderSliderSliderBoundsGetY(Rect2i instance) {
         return this.getSliderBounds().y();
     }
@@ -113,17 +113,17 @@ public abstract class MixinSliderControlElement extends ControlElement<Integer> 
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
         if (!isFocused()) return false;
 
-        if (keyCode == InputUtil.GLFW_KEY_ENTER) {
+        if (keyCode == GLFW.GLFW_KEY_ENTER) {
             this.setEditMode(!this.isEditMode());;
             return true;
         }
 
         if (this.isEditMode()) {
-            if (keyCode == InputUtil.GLFW_KEY_LEFT) {
-                this.option.setValue(MathHelper.clamp(this.option.getValue() - interval, min, max));
+            if (keyCode == GLFW.GLFW_KEY_LEFT) {
+                this.option.setValue(Mth.clamp(this.option.getValue() - interval, min, max));
                 return true;
-            } else if (keyCode == InputUtil.GLFW_KEY_RIGHT) {
-                this.option.setValue(MathHelper.clamp(this.option.getValue() + interval, min, max));
+            } else if (keyCode == GLFW.GLFW_KEY_RIGHT) {
+                this.option.setValue(Mth.clamp(this.option.getValue() + interval, min, max));
                 return true;
             }
         }
@@ -137,7 +137,7 @@ public abstract class MixinSliderControlElement extends ControlElement<Integer> 
         ci.cancel();
     }
 
-    @Redirect(method = "mouseClicked", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/util/math/Rect2i;contains(II)Z"))
+    @Redirect(method = "mouseClicked", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/Rect2i;contains(II)Z"))
     public boolean rso$mouseClicked(Rect2i instance, int x, int y) {
         return this.getSliderBounds().containsCursor(x, y);
     }

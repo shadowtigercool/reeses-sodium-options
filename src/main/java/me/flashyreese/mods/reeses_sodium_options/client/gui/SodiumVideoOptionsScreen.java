@@ -233,8 +233,8 @@ public class SodiumVideoOptionsScreen extends Screen implements ScreenPromptable
 
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float delta) {
-        super.renderBackground(guiGraphics, mouseX, mouseY, delta);
         this.updateControls();
+        super.render(guiGraphics, this.prompt != null ? -1 : mouseX, this.prompt != null ? -1 : mouseY, delta);
         this.frame.render(guiGraphics, this.prompt != null ? -1 : mouseX, this.prompt != null ? -1 : mouseY, delta);
         if (this.prompt != null) {
             this.prompt.render(guiGraphics, mouseX, mouseY, delta);

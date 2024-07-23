@@ -126,6 +126,8 @@ public class SodiumVideoOptionsScreen extends Screen implements ScreenPromptable
 
     @Override
     protected void init() {
+        super.init();
+
         this.frame = this.parentFrameBuilder().build();
         this.addRenderableWidget(this.frame);
 
@@ -134,6 +136,10 @@ public class SodiumVideoOptionsScreen extends Screen implements ScreenPromptable
             this.setFocused(this.searchTextField);
         } else {
             this.setFocused(this.frame);
+        }
+
+        if (this.prompt != null) {
+            this.prompt.init();
         }
     }
 
